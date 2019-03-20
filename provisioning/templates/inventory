@@ -1,0 +1,35 @@
+[tower]
+tower1
+tower2
+tower3
+
+[isolated_group_redhat]
+tower4
+
+[isolated_group_redhat:vars]
+controller=tower
+
+[database]
+db
+
+[all:vars]
+admin_password='ansible'
+rabbitmq_enable_manager=true
+nginx_disable_https=true
+
+pg_host='db'
+pg_port='5432'
+
+pg_database='awx'
+pg_username='awx'
+pg_password='ansible'
+
+rabbitmq_port=5672
+rabbitmq_vhost=tower
+rabbitmq_username=tower
+rabbitmq_password='ansible'
+rabbitmq_cookie=cookiemonster
+
+# Isolated Tower nodes automatically generate an RSA key for authentication;
+# To disable this behavior, set this value to false
+# isolated_key_generation=true

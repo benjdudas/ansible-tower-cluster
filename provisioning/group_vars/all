@@ -1,0 +1,33 @@
+admin_pass: "ansible.123"
+tower_version: ansible-tower-setup-latest.tar.gz
+
+packages:
+  - epel-release
+  - vim
+  - wget
+  - ansible
+  - python-pip
+  - net-tools
+
+lb_packages:
+  - epel-release
+  - nginx
+  - vim
+  - wget
+  - python-pip
+  - ansible
+  - net-tools
+
+cluster_hosts:
+  - 10.0.15.100 tower1
+  - 10.0.15.101 tower2
+  - 10.0.15.102 tower3
+  - 10.0.15.103 tower4
+  - 10.0.15.104 db
+
+instances:
+  - db
+  - tower4
+  - tower3
+  - tower2
+  - tower1

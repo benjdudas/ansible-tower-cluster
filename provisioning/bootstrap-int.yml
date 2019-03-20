@@ -1,0 +1,80 @@
+---
+
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks:
+
+    - name: installing required packages
+      yum:
+        name: "{{ item }}"
+        state: installed
+      loop:
+        - epel-release
+        - ansible
+        - python-pip
+      changed_when: false
+
+    - name: adding dependencies
+      pip:
+        name: pexpect
+      changed_when: false
+
+    - name: permit root login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#\s*PermitRootLogin.*$'
+        line: 'PermitRootLogin yes'
+      changed_when: false
+
+    - name: allow password authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#\?*PasswordAuthentication.*$'
+        line: 'PasswordAuthentication yes'
+      changed_when: false
+
+    - name: remove unwanted config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication no'
+        state: absent
+      changed_when: false
+
+    - name: resetting root password
+      expect:
+        command: passwd root
+        responses:
+          'New password:': '{{ admin_pass }}\n'
+          'Retype new password:': '{{ admin_pass }}\n'
+      changed_when: false
+
+    - name: creating required folders
+      file:
+        path: /root/.ssh
+        state: directory
+        owner: root
+      changed_when: false
+
+    - name: generating ssh keys for root
+      shell: ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N ""
+      args:
+        creates: /root/.ssh/id_rsa
+      changed_when: false
+
+    - name: restart sshd service
+      systemd:
+        name: sshd
+        state: restarted
+      changed_when: false
+
+    - name: transfer xray
+      copy:
+        src: ./bootstrap-xray.yml
+        dest: /tmp/bootstrap-xray.yml
+        force: yes
+        owner: root
+      changed_when: false
+
+...

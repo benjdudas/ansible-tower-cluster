@@ -1,0 +1,68 @@
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks:
+    - name: installing required packages
+      yum:
+        name: "{{ item }}"
+        state: installed
+      loop: "{{ lb_packages }}"
+      register: install
+      until: install is succeeded
+      changed_when: false
+
+    - name: creating tower cert directory
+      file:
+        path: /etc/tower
+        state: directory
+        mode: 0755
+      changed_when: false
+
+    - name: transfering tower.cert
+      copy:
+        src: ./templates/tower.cert
+        dest: /etc/tower/tower.cert
+        force: yes
+        owner: root
+        mode: 0640
+      changed_when: false
+
+    - name: transfering tower.key
+      copy:
+        src: ./templates/tower.key
+        dest: /etc/tower/tower.key
+        force: yes
+        owner: root
+        mode: 0640
+      changed_when: false
+
+    - name: archive original nginx config file
+      command: "mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.old"
+      changed_when: false
+
+    - name: transfering nginx config file
+      copy:
+        src: ./templates/nginx.conf
+        dest: /etc/nginx/nginx.conf
+        force: yes
+        owner: root
+      changed_when: false
+
+    - name: start nginx service
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+      changed_when: false
+
+    - name: configuring host file for env network
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        state: present
+      loop: "{{ cluster_hosts }}"
+      changed_when: false
+
+...
+

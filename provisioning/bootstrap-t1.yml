@@ -1,0 +1,134 @@
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks:
+
+    - name: installing required packages
+      yum:
+        name: "{{ item }}"
+        state: installed
+      loop: "{{ packages }}"
+      changed_when: false
+
+    - name: adding dependencies
+      pip:
+        name: pexpect
+      changed_when: false
+
+    - name: teleport tower
+      get_url:
+        url: https://releases.ansible.com/ansible-tower/setup/{{ tower_version }}
+        dest: /root/
+      changed_when: false
+
+    - name: configuring host file for env network
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        state: present
+      loop: "{{ cluster_hosts }}"
+      changed_when: false
+
+    - name: permit root login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#\s*PermitRootLogin.*$'
+        line: 'PermitRootLogin yes'
+      changed_when: false
+
+    - name: allow password authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#\?*PasswordAuthentication.*$'
+        line: 'PasswordAuthentication yes'
+      changed_when: false
+
+    - name: remove unwanted config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication no'
+        state: absent
+      changed_when: false
+
+    - name: resetting root password
+      expect:
+        command: passwd root
+        responses:
+          'New password:': '{{ admin_pass }}\n'
+          'Retype new password:': '{{ admin_pass }}\n'
+      changed_when: false
+
+    - name: creating required folders
+      file:
+        path: /root/.ssh
+        state: directory
+        owner: root
+      changed_when: false
+
+    - name: generating ssh keys for root
+      shell: ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N ""
+      args:
+        creates: /root/.ssh/id_rsa
+      changed_when: false
+
+    - name: restart sshd service
+      systemd:
+        name: sshd
+        state: restarted
+      changed_when: false
+
+    - name: testing connection to instances
+      command: ping "{{ item }}" -c5
+      loop: "{{ instances }}"
+      changed_when: false
+
+    - name: copying ssh id of hosts
+      expect:
+        command: ssh-copy-id "{{ item }}"
+        responses:
+          'Are you sure you want to continue connecting (yes/no)?': 'yes\n'
+          '(?i)password:': '{{ admin_pass }}\n'
+      loop: "{{ instances }}"
+      changed_when: false
+
+    - name: executing xray
+      command: ssh root@{{ item }} "ansible-playbook /tmp/bootstrap-xray.yml"
+      loop:
+        - tower2
+        - tower3
+        - tower4
+        - db
+      changed_when: false
+
+    - name: preparing tower installer
+      unarchive:
+        src: /root/{{ tower_version }}
+        dest: /root/
+        remote_src: yes
+      changed_when: false
+
+    - name: locating tower settings
+      shell: "ls /root/ |grep ansible-tower-setup-3.*"
+      register: installer
+      changed_when: false
+
+    - name: debug installer
+      debug:
+        msg: "{{ installer.stdout_lines[0] }}"
+      changed_when: false
+
+    - name: transfering inventory file
+      copy:
+        src: ./templates/inventory
+        dest: /root/{{ installer.stdout_lines[0] }}/inventory
+        force: yes
+        owner: root
+      changed_when: false
+
+      #    - name: installing tower (This will take several minutes)
+      #command: sh /root/{{ installer.stdout_lines[0] }}/setup.sh
+      #changed_when: false
+
+
+...

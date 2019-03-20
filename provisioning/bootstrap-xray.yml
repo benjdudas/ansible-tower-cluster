@@ -1,0 +1,41 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+  become: yes
+  vars:
+    admin_pass: ansible.123
+    cluster_hosts:
+      - 10.0.15.100 tower1
+      - 10.0.15.101 tower2
+      - 10.0.15.102 tower3
+      - 10.0.15.103 tower4
+      - 10.0.15.104 db
+    instances:
+      - db
+      - tower4
+      - tower3
+      - tower2
+      - tower1
+
+  tasks:
+
+    - name: configuring host file for env network
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        state: present
+      loop: "{{ cluster_hosts }}"
+      changed_when: false
+
+    - name: copying ssh id of hosts
+      expect:
+        command: ssh-copy-id "{{ item }}"
+        responses:
+          'Are you sure you want to continue connecting (yes/no)?': 'yes\n'
+          '(?i)password:': '{{ admin_pass }}\n'
+      loop: "{{ instances }}"
+      changed_when: false
+
+...
+
