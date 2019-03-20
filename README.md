@@ -2,8 +2,8 @@
 
 Requirements:
 
-  - VirtualBox - created on version 5.2.8
-  - Ansible - built with version 2.5.0
+  - VirtualBox - created on version 6.0.4
+  - Ansible - built with version 2.7.5
 
 Instructions:
 
