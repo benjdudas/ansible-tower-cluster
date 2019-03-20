@@ -3,7 +3,7 @@
 Requirements:
 
   - VirtualBox - created on version 6.0.4
-  - Ansible - built with version 2.7.5
+  - Ansible - built with version 2.7.8
 
 Instructions:
 
