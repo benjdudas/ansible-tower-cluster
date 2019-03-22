@@ -16,6 +16,18 @@
         name: pexpect
       changed_when: false
 
+    - name: archiving origial ansible.cfg
+      command: "mv /etc/ansible/ansible.cfg /etc/ansible/ansible.cfg.old"
+      changed_when: false
+
+    - name: transfering ansible.cfg file
+      copy:
+        src: ./templates/ansible.cfg
+        dest: /etc/ansible/ansible.cfg
+        force: yes
+        owner: root
+      changed_when: false
+
     - name: teleport tower
       get_url:
         url: https://releases.ansible.com/ansible-tower/setup/{{ tower_version }}

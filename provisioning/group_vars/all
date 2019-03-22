@@ -8,6 +8,7 @@ packages:
   - ansible
   - python-pip
   - net-tools
+  - cowsay
 
 lb_packages:
   - epel-release
