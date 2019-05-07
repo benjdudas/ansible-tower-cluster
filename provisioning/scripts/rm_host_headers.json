@@ -1,0 +1,7 @@
+{
+  "REMOTE_HOST_HEADERS": [
+    "REMOTE_ADDR",
+    "REMOTE_HOST",
+    "HTTP_X_FORWARDED_FOR",
+  ]
+}
