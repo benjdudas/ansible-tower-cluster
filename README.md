@@ -13,7 +13,7 @@ Instructions:
   - Switch to root user and from cd to the Tower installer at `/root/`
   - Because the vm's have less RAM then required, comment out the preflight RAM check in (`./roles/preflight/tasks/main.yml`)
   - Run tower installer (`./setup`)
-  - Edit host file for the Tower cluster lb (`echo '10.0.15.35 tower.ansible.com >> /etc/hosts`)
+  - Edit host file for the Tower cluster lb (`echo '10.0.15.35 tower.ansible.com' >> /etc/hosts`)
   - Connect to the Tower UI using the login info below to add license. 
   - Configuring remote host headers is required when fronting tower with a load-balancer (https://docs.ansible.com/ansible-tower/latest/html/administration/proxy-support.html#proxy-support). Run the provided script in ansible-tower-cluster dir to set this up.
     ```
